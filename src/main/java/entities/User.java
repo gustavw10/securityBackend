@@ -43,8 +43,7 @@ public class User implements Serializable {
   @ManyToMany
   private List<Role> roleList = new ArrayList<>();
   
-  @OneToMany(mappedBy="user", cascade = CascadeType.ALL)
-    private List<Dog> dogs;
+
 
   public List<String> getRolesAsStrings() {
     if (roleList.isEmpty()) {
@@ -67,14 +66,8 @@ public class User implements Serializable {
   public User(String userName, String userPass) {
     this.userName = userName;
     this.userPass = BCrypt.hashpw(userPass, BCrypt.gensalt());
-    this.dogs = new ArrayList<>();
   }
   
-  public void addDog(Dog dog) {
-        if (dog != null){
-            dogs.add(dog);
-        }
-    }
 
   public String getUserName() {
     return userName;
