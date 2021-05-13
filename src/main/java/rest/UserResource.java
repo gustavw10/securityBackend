@@ -31,7 +31,7 @@ import utils.EMF_Creator;
 
 /**
  * REST Web Service
- 
+
  */
 
 
@@ -118,4 +118,4 @@ public class UserResource {
        return GSON.toJson(returnUser);
       
     }
-}
+    }
