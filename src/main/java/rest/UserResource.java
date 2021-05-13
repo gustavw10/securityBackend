@@ -7,16 +7,21 @@ package rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dtos.UserDTO;
 import dtos.UsersDTO;
+import entities.Role;
 import entities.User;
+import errorhandling.MissingInputException;
 import facades.UserFacade;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -68,7 +73,7 @@ public class UserResource {
         UsersDTO users = FACADE.getAllUsers();
         return GSON.toJson(users);
     }
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("allCount")
@@ -102,4 +107,15 @@ public class UserResource {
         return "{\"msg\": \"Hello to (admin) User: " + thisuser + "\"}";
     }
     
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("createuser")
+    public String createUser(String user) throws MissingInputException {
+       
+       UserDTO u = GSON.fromJson(user, UserDTO.class);
+       UserDTO returnUser = FACADE.createUser(u);
+       return GSON.toJson(returnUser);
+      
+    }
 }

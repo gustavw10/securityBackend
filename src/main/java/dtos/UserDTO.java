@@ -1,6 +1,7 @@
 
 package dtos;
 
+
 import entities.User;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +35,7 @@ public class UserDTO {
     public String getUserPass() {
         return userPass;
     }
+
 
     public void setUserPass(String userPass) {
         this.userPass = userPass;

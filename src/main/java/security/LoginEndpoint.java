@@ -42,6 +42,7 @@ public class LoginEndpoint {
     String username = json.get("username").getAsString();
     String password = json.get("password").getAsString();
 
+
     try {
       User user = USER_FACADE.getVeryfiedUser(username, password);
       String token = createToken(username, user.getRolesAsStrings());
