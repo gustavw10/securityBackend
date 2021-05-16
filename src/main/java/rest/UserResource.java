@@ -112,10 +112,8 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("createuser")
     public String createUser(String user) throws MissingInputException {
-       
        UserDTO u = GSON.fromJson(user, UserDTO.class);
        UserDTO returnUser = FACADE.createUser(u);
        return GSON.toJson(returnUser);
-      
     }
-    }
+}

@@ -9,9 +9,11 @@ import dtos.PageDTO;
 import dtos.PagesDTO;
 import entities.Page;
 import errorhandling.NotFoundException;
+import java.util.ArrayList;
 import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Query;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -62,6 +64,27 @@ public class PageFacade {
         } finally {
             em.close();
         }
+    }
+    
+    
+    public PageDTO getPage(long id)  throws NotFoundException {
+       EntityManager em = emf.createEntityManager();
+       try {
+           Page page = em.find(Page.class, id);
+           if (page == null) {
+                throw new NotFoundException(String.format("Page with id: (%d) not found.", id));
+            } else {
+                return new PageDTO(page);
+           }
+       } finally {
+           em.close();
+       }
+    }
+    
+    public static void main(String[] args) throws NotFoundException {
+         EntityManager em = emf.createEntityManager();
+//          Query query = em.createQuery("SELECT p FROM Page p WHERE p.id = '51");
+//            PageDTO page = (PageDTO)query.getSingleResult();
     }
     
 }
