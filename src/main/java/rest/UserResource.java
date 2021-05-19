@@ -107,6 +107,15 @@ public class UserResource {
         return "{\"msg\": \"Hello to (admin) User: " + thisuser + "\"}";
     }
     
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("loggedInAs")
+    @RolesAllowed({"user", "admin"})
+    public String getLoggedInAs() {
+        String thisuser = securityContext.getUserPrincipal().getName();
+        return GSON.toJson(thisuser);
+    }
+    
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

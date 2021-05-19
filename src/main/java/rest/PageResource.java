@@ -86,4 +86,8 @@ public class PageResource {
         return GSON.toJson(page);
     }
     
+    public static void main(String[] args) {
+        PageResource res = new PageResource();
+        res.insertPage("{\"title\":\"Moby Dick Chapter 2\", \"text\":\"attem\", \"mainAuthor\":\"admin\"}" );
+    }
 }

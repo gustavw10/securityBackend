@@ -16,11 +16,22 @@ public class PageDTO {
     private Long id;
     private String title;
     private String text;
+    private String mainAuthor;
+    private String writeRights;
+    private String deleteRights;
+    private String adminRights;
 
     public PageDTO(Long id, String title, String text) {
         this.id = id;
         this.title = title;
         this.text = text;
+    }
+    
+    public PageDTO(Long id, String title, String text, String mainAuthor) {
+        this.id = id;
+        this.title = title;
+        this.text = text;
+        this.mainAuthor = mainAuthor;
     }
     
     public PageDTO(String title, String text) {
@@ -56,6 +67,10 @@ public class PageDTO {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getMainAuthor() {
+        return mainAuthor;
     }
     
 }

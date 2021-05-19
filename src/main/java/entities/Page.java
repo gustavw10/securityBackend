@@ -26,6 +26,14 @@ public class Page implements Serializable {
     private String title;
     @Column(columnDefinition = "TEXT")
     private String text;
+    @Column(columnDefinition = "TEXT")
+    private String writePermission;
+    @Column(columnDefinition = "TEXT")
+    private String deletePermission;
+    @Column(columnDefinition = "TEXT")
+    private String adminPermission;
+    @Column(columnDefinition = "TEXT")
+    private String mainAuthor;
     
     
     public Page(){
@@ -34,6 +42,12 @@ public class Page implements Serializable {
     public Page(String title, String text) {
         this.title = title;
         this.text = text;
+    }
+    
+    public Page(String title, String text, String mainAuthor) {
+        this.title = title;
+        this.text = text;
+        this.mainAuthor = mainAuthor;
     }
 
     public Long getId() {

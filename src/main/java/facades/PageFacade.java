@@ -43,7 +43,7 @@ public class PageFacade {
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
         //LAV MYSQL INJECT TEST HER
-        Page page = new Page(pageDTO.getTitle(), pageDTO.getText());
+        Page page = new Page(pageDTO.getTitle(), pageDTO.getText(), pageDTO.getMainAuthor());
         em.persist(page);
         em.getTransaction().commit();
         em.close();
