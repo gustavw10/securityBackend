@@ -49,6 +49,15 @@ public class Page implements Serializable {
         this.text = text;
         this.mainAuthor = mainAuthor;
     }
+    
+    public Page(String title, String text, String mainAuthor, String writePermission, String deletePermission, String adminPermission) {
+        this.title = title;
+        this.text = text;
+        this.mainAuthor = mainAuthor;
+        this.writePermission = writePermission;
+        this.deletePermission = deletePermission;
+        this.adminPermission = adminPermission;
+    }
 
     public Long getId() {
         return id;
@@ -72,6 +81,38 @@ public class Page implements Serializable {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public String getWritePermission() {
+        return writePermission;
+    }
+
+    public void setWritePermission(String writePermission) {
+        this.writePermission = writePermission;
+    }
+
+    public String getDeletePermission() {
+        return deletePermission;
+    }
+
+    public void setDeletePermission(String deletePermission) {
+        this.deletePermission = deletePermission;
+    }
+
+    public String getAdminPermission() {
+        return adminPermission;
+    }
+
+    public void setAdminPermission(String adminPermission) {
+        this.adminPermission = adminPermission;
+    }
+
+    public String getMainAuthor() {
+        return mainAuthor;
+    }
+
+    public void setMainAuthor(String mainAuthor) {
+        this.mainAuthor = mainAuthor;
     }
 
 }

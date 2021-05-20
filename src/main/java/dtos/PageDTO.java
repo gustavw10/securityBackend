@@ -43,6 +43,10 @@ public class PageDTO {
         this.id = page.getId();
         this.title = page.getTitle();
         this.text = page.getText();
+        this.mainAuthor = page.getMainAuthor();
+        this.writeRights = page.getWritePermission();
+        this.deleteRights = page.getDeletePermission();
+        this.adminRights = page.getAdminPermission();
     }
 
     public Long getId() {

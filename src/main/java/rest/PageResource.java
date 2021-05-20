@@ -25,9 +25,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
@@ -83,6 +85,29 @@ public class PageResource {
         EntityManager em = EMF.createEntityManager();
         PageDTO page = PAGEFACADE.getPage(id);
         
+        return GSON.toJson(page);
+    }
+    
+    @PUT
+    @Path("editPage/{id}")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes({MediaType.APPLICATION_JSON})
+    @RolesAllowed({"user", "admin"})
+    public String updatePage(@PathParam("id") long id,  String page) {
+        //String thisuser = securityContext.getUserPrincipal().getName();
+        EntityManager em = EMF.createEntityManager();
+        
+        PageDTO pageToAdd = GSON.fromJson(page, PageDTO.class);
+        PageDTO pageDTO = PAGEFACADE.editPage(pageToAdd, id);
+        
+        return GSON.toJson(pageDTO);
+    }
+    
+    @DELETE
+    @Path("deletePage/{id}")
+    @Produces({MediaType.APPLICATION_JSON})
+    public String deletePage(@PathParam("id") long id)   {
+        PageDTO page = PAGEFACADE.deletePage(id);
         return GSON.toJson(page);
     }
     

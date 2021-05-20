@@ -51,6 +51,22 @@ public class PageFacade {
         return page;
     }
     
+     public PageDTO editPage(PageDTO pageDTO, long id) {
+        EntityManager em = emf.createEntityManager();
+
+        try {
+            em.getTransaction().begin();
+            Page page = em.find(Page.class, id);
+            page.setTitle(pageDTO.getTitle());
+            page.setText(pageDTO.getText());
+            
+            em.getTransaction().commit();
+            return new PageDTO(page);
+        } finally {
+            em.close();
+        }
+    }
+    
     public PagesDTO getPages() throws NotFoundException{
         EntityManager em = emf.createEntityManager();
         
@@ -79,6 +95,23 @@ public class PageFacade {
        } finally {
            em.close();
        }
+    }
+    
+    public PageDTO deletePage(long id) {
+        EntityManager em = emf.createEntityManager();
+        Page page = em.find(Page.class, id);
+        if (page == null) {
+            //throw new PersonNotFoundException("Could not delete, provided id does not exist");
+        } else {
+            try {
+                em.getTransaction().begin();
+                em.remove(page);
+                em.getTransaction().commit();
+            } finally {
+                em.close();
+            }
+        }
+        return new PageDTO(page);
     }
     
     public static void main(String[] args) throws NotFoundException {
