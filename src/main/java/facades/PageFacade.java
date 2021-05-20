@@ -8,6 +8,7 @@ package facades;
 import dtos.PageDTO;
 import dtos.PagesDTO;
 import entities.Page;
+import entities.Request;
 import errorhandling.NotFoundException;
 import java.util.ArrayList;
 import javax.annotation.security.RolesAllowed;
@@ -17,7 +18,11 @@ import javax.persistence.Query;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+import utils.EMF_Creator;
 
 /**
  *
@@ -27,6 +32,12 @@ public class PageFacade {
     
     private static EntityManagerFactory emf;
     private static PageFacade instance; 
+    
+    @Context
+    private UriInfo context;
+
+    @Context
+    SecurityContext securityContext;
     
     private PageFacade() {
         
@@ -98,7 +109,8 @@ public class PageFacade {
     }
     
     public PageDTO deletePage(long id) {
-        EntityManager em = emf.createEntityManager();
+        EntityManager em = emf.createEntityManager();   
+        
         Page page = em.find(Page.class, id);
         if (page == null) {
             //throw new PersonNotFoundException("Could not delete, provided id does not exist");
@@ -114,10 +126,26 @@ public class PageFacade {
         return new PageDTO(page);
     }
     
+    public Request requestLogger(long id, String type, String thisuser){
+        EntityManager em = emf.createEntityManager();
+    
+        em.getTransaction().begin();
+        Request req = new Request(type, thisuser, id);
+        em.persist(req);
+        em.getTransaction().commit();
+        em.close();
+        return req;
+    }
+    
     public static void main(String[] args) throws NotFoundException {
-         EntityManager em = emf.createEntityManager();
+//         EntityManager em = emf.createEntityManager();
 //          Query query = em.createQuery("SELECT p FROM Page p WHERE p.id = '51");
 //            PageDTO page = (PageDTO)query.getSingleResult();
+        EntityManagerFactory EMF = EMF_Creator.createEntityManagerFactory();
+        PageFacade PAGEFACADE =  PageFacade.getPageFacade(EMF);
+        String us = "us";
+        PAGEFACADE.requestLogger(2, "DEL", us);
+        
     }
     
 }

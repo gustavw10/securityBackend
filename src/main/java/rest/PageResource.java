@@ -13,6 +13,7 @@ import dtos.PagesDTO;
 import dtos.UserDTO;
 import dtos.UsersDTO;
 import entities.Page;
+import entities.Request;
 import entities.Role;
 import entities.User;
 import errorhandling.MissingInputException;
@@ -50,17 +51,25 @@ public class PageResource {
     private static final PageFacade PAGEFACADE =  PageFacade.getPageFacade(EMF);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     
+    @Context
+    private UriInfo context;
+
+    @Context
+    SecurityContext securityContext;
+    
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("insertPage")
     @RolesAllowed({"user", "admin"})
     public String insertPage(String page) {
-        //String thisuser = securityContext.getUserPrincipal().getName();
         EntityManager em = EMF.createEntityManager();
+        String thisuser = securityContext.getUserPrincipal().getName();
+        
         PageDTO pageDTO = GSON.fromJson(page, PageDTO.class);
         Page pageReturn = PAGEFACADE.insertText(pageDTO);
-             
+        Request req = PAGEFACADE.requestLogger(pageReturn.getId(), "POST", thisuser);     
+        
         return GSON.toJson(pageReturn);
     }
     
@@ -93,21 +102,39 @@ public class PageResource {
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     @RolesAllowed({"user", "admin"})
-    public String updatePage(@PathParam("id") long id,  String page) {
-        //String thisuser = securityContext.getUserPrincipal().getName();
+    public String updatePage(@PathParam("id") long id,  String page) throws NotFoundException { 
         EntityManager em = EMF.createEntityManager();
+        String thisuser = securityContext.getUserPrincipal().getName();
+        
+        PageDTO checkRights = PAGEFACADE.getPage(id);
         
         PageDTO pageToAdd = GSON.fromJson(page, PageDTO.class);
         PageDTO pageDTO = PAGEFACADE.editPage(pageToAdd, id);
+        Request req = PAGEFACADE.requestLogger(id, "PUT", thisuser);
         
         return GSON.toJson(pageDTO);
+    }
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("loggedInAs")
+    @RolesAllowed({"user", "admin"})
+    public String getLoggedInAs() {
+        String thisuser = securityContext.getUserPrincipal().getName();
+        return GSON.toJson(thisuser);
     }
     
     @DELETE
     @Path("deletePage/{id}")
     @Produces({MediaType.APPLICATION_JSON})
+    @RolesAllowed({"user", "admin"})
     public String deletePage(@PathParam("id") long id)   {
+        EntityManager em = EMF.createEntityManager();
+        String thisuser = securityContext.getUserPrincipal().getName();
+        
         PageDTO page = PAGEFACADE.deletePage(id);
+        Request req = PAGEFACADE.requestLogger(id, "DEL", thisuser);
+        
         return GSON.toJson(page);
     }
     
