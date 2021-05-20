@@ -58,38 +58,16 @@ public class UserResource {
         return "{\"msg\":\"Hello World\"}";
     }
     
-    @Path("count")
-    @GET
-    @Produces({MediaType.APPLICATION_JSON})
-    public String getRenameMeCount() {
-        long count = FACADE.getUserCount();
-        //System.out.println("--------------->"+count);
-        return "{\"count\":"+count+"}";  //Done manually so no need for a DTO
-    }
-    
     
     @GET
     @Path("all")
+    @RolesAllowed({"admin"})
     @Produces({MediaType.APPLICATION_JSON})
     public String getAllUsers() {
         UsersDTO users = FACADE.getAllUsers();
         return GSON.toJson(users);
     }
 
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("allCount")
-    public String allUsers() {
-
-        EntityManager em = EMF.createEntityManager();
-        try {
-            TypedQuery<User> query = em.createQuery ("select u from User u",entities.User.class);
-            List<User> users = query.getResultList();
-            return "[" + users.size() + "]";
-        } finally {
-            em.close();
-        }
-    }
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
