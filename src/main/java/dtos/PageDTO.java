@@ -76,5 +76,29 @@ public class PageDTO {
     public String getMainAuthor() {
         return mainAuthor;
     }
+
+    public String getWriteRights() {
+        return writeRights;
+    }
+
+    public void setWriteRights(String writeRights) {
+        this.writeRights = writeRights;
+    }
+
+    public String getDeleteRights() {
+        return deleteRights;
+    }
+
+    public void setDeleteRights(String deleteRights) {
+        this.deleteRights = deleteRights;
+    }
+
+    public String getAdminRights() {
+        return adminRights;
+    }
+
+    public void setAdminRights(String adminRights) {
+        this.adminRights = adminRights;
+    }
     
 }

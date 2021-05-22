@@ -8,6 +8,7 @@ package rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.nimbusds.jose.util.ArrayUtils;
 import dtos.PageDTO;
 import dtos.PagesDTO;
 import dtos.UserDTO;
@@ -20,6 +21,8 @@ import errorhandling.MissingInputException;
 import errorhandling.NotFoundException;
 import facades.PageFacade;
 import facades.UserFacade;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
@@ -63,7 +66,7 @@ public class PageResource {
     @Path("insertPage")
     @RolesAllowed({"user", "admin"})
     public String insertPage(String page) {
-        EntityManager em = EMF.createEntityManager();
+        //EntityManager em = EMF.createEntityManager();
         String thisuser = securityContext.getUserPrincipal().getName();
         
         PageDTO pageDTO = GSON.fromJson(page, PageDTO.class);
@@ -78,10 +81,7 @@ public class PageResource {
     @Path("pages")
     @RolesAllowed({"user", "admin"})
     public String getPages() throws NotFoundException {
-        //String thisuser = securityContext.getUserPrincipal().getName();
-        EntityManager em = EMF.createEntityManager();
-        PagesDTO pages = PAGEFACADE.getPages();
-        
+        PagesDTO pages = PAGEFACADE.getPages();  
         return GSON.toJson(pages);
     }
     
@@ -103,18 +103,20 @@ public class PageResource {
     @Consumes({MediaType.APPLICATION_JSON})
     @RolesAllowed({"user", "admin"})
     public String updatePage(@PathParam("id") long id,  String page) throws NotFoundException { 
-        EntityManager em = EMF.createEntityManager();
-        String thisuser = securityContext.getUserPrincipal().getName();
+        String thisuser = securityContext.getUserPrincipal().getName();  
+        PageResource res = new PageResource();
+        boolean key = res.getKey(id, true, false, thisuser);
         
-        PageDTO checkRights = PAGEFACADE.getPage(id);
-        
+        if(key){
         PageDTO pageToAdd = GSON.fromJson(page, PageDTO.class);
         PageDTO pageDTO = PAGEFACADE.editPage(pageToAdd, id);
         Request req = PAGEFACADE.requestLogger(id, "PUT", thisuser);
-        
         return GSON.toJson(pageDTO);
+        }
+        return GSON.toJson("Permission denied.");
     }
     
+  
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("loggedInAs")
@@ -128,18 +130,58 @@ public class PageResource {
     @Path("deletePage/{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @RolesAllowed({"user", "admin"})
-    public String deletePage(@PathParam("id") long id)   {
-        EntityManager em = EMF.createEntityManager();
+    public String deletePage(@PathParam("id") long id) throws NotFoundException   {
         String thisuser = securityContext.getUserPrincipal().getName();
+        PageResource res = new PageResource();
+        boolean key = res.getKey(id, false, true, thisuser);
         
+        if(key){
         PageDTO page = PAGEFACADE.deletePage(id);
         Request req = PAGEFACADE.requestLogger(id, "DEL", thisuser);
-        
         return GSON.toJson(page);
+        }
+        return GSON.toJson("Permission denied.");
+    }
+     
+    @PUT
+    @Path("editRights/{id}")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes({MediaType.APPLICATION_JSON})
+    @RolesAllowed({"user", "admin"})
+    public String editRights(@PathParam("id") long id,  String addUser) throws NotFoundException { 
+        String thisuser = securityContext.getUserPrincipal().getName();
+        PageResource res = new PageResource();
+        boolean key = res.getKey(id, false, false, thisuser);
+        
+        return GSON.toJson("Permission denied.");
     }
     
-    public static void main(String[] args) {
+    
+      public boolean getKey(Long id, boolean write, boolean del, String user) throws NotFoundException{
+        boolean writeKey = false, delKey = false, adminKey = false, authorKey = false;
+        String[] writeRights = null, delRights = null, adminRights = null, authorRights = null;
+        String thisuser = user;
+        PageDTO rightsDTO = PAGEFACADE.getPage(id);
+        if(rightsDTO.getWriteRights() != null){
+            writeRights = rightsDTO.getWriteRights().replaceAll("\\s","").split(",");}
+        if(rightsDTO.getDeleteRights() != null){
+            delRights = rightsDTO.getWriteRights().replaceAll("\\s","").split(",");}
+        if(rightsDTO.getAdminRights() != null){
+            adminRights = rightsDTO.getAdminRights().replaceAll("\\s","").split(",");}
+        if(rightsDTO.getMainAuthor() != null){
+            authorRights = rightsDTO.getMainAuthor().replaceAll("\\s","").split(",");}
+        if(write && writeRights != null){writeKey = Arrays.asList(writeRights).contains(thisuser);}
+        if(del && delRights != null){delKey = Arrays.asList(delRights).contains(thisuser);}
+        if(adminRights != null)adminKey = Arrays.asList(adminRights).contains(thisuser);
+        if(authorRights != null)authorKey = Arrays.asList(authorRights).contains(thisuser);
+        if(writeKey || delKey || adminKey || authorKey){
+        return true;
+    }
+        return false;
+    }
+    
+    public static void main(String[] args) throws NotFoundException {
         PageResource res = new PageResource();
-        res.insertPage("{\"title\":\"Moby Dick Chapter 2\", \"text\":\"attem\", \"mainAuthor\":\"admin\"}" );
+        
     }
 }
