@@ -52,7 +52,7 @@ public class CorsFilter implements ContainerRequestFilter, ContainerResponseFilt
     /* Cross origin requests can be either simple requests or preflight request. We need to add this
      header to both types of requests. Only preflight requests need the previously added headers. */
                                                            
-     response.getHeaders().add("Access-Control-Allow-Origin", "https://security-frontend-ws8nw.ondigitalocean.app/");
+     response.getHeaders().add("Access-Control-Allow-Origin", "https://security-frontend-ws8nw.ondigitalocean.app");
   }
 }
 
