@@ -10,8 +10,10 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nimbusds.jose.util.ArrayUtils;
 import dtos.AddUserDTO;
+import dtos.AdminToken;
 import dtos.PageDTO;
 import dtos.PagesDTO;
+import dtos.RequestsDTO;
 import dtos.UserDTO;
 import dtos.UsersDTO;
 import entities.Page;
@@ -85,6 +87,15 @@ public class PageResource {
     public String getPages() throws NotFoundException {
         PagesDTO pages = PAGEFACADE.getPages();  
         return GSON.toJson(pages);
+    }
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("requests")
+    @RolesAllowed({"admin"})
+    public String getRequests() throws NotFoundException {
+        RequestsDTO reqs = PAGEFACADE.getRequests();  
+        return GSON.toJson(reqs);
     }
     
     @GET
@@ -185,11 +196,13 @@ public class PageResource {
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("loggedInAs")
-    @RolesAllowed({"user", "admin"})
+    @Path("getAdminToken")
+    @RolesAllowed({"admin"})
     public String getAdminToken() {
         String thisuser = securityContext.getUserPrincipal().getName();
-        return GSON.toJson(thisuser);
+        AdminToken token = new AdminToken();
+        token.setToken("true");
+        return GSON.toJson(token);
     }
     
       public boolean getKey(Long id, boolean write, boolean del, String user) throws NotFoundException{

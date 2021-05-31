@@ -7,6 +7,7 @@ package facades;
 
 import dtos.PageDTO;
 import dtos.PagesDTO;
+import dtos.RequestsDTO;
 import entities.Page;
 import entities.Request;
 import errorhandling.IllegalOperationException;
@@ -117,6 +118,21 @@ public class PageFacade {
                 throw new NotFoundException("Could not find anything with the given query.");
             } else {
                 return pages;
+            }
+        } finally {
+            em.close();
+        }
+    }
+    
+        public RequestsDTO getRequests() throws NotFoundException{
+        EntityManager em = emf.createEntityManager();
+        
+         try {
+            RequestsDTO reqs = new RequestsDTO(em.createQuery("SELECT r from Request r " ).getResultList());
+            if (reqs == null) {
+                throw new NotFoundException("Could not find anything with the given query.");
+            } else {
+                return reqs;
             }
         } finally {
             em.close();
