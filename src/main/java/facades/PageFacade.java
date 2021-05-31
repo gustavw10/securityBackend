@@ -9,8 +9,14 @@ import dtos.PageDTO;
 import dtos.PagesDTO;
 import entities.Page;
 import entities.Request;
+import errorhandling.IllegalOperationException;
 import errorhandling.NotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -50,33 +56,57 @@ public class PageFacade {
         return instance;
     }
     
-    public Page insertText(PageDTO pageDTO){
+    public Page insertText(PageDTO pageDTO) throws IllegalOperationException{
         EntityManager em = emf.createEntityManager();
         em.getTransaction().begin();
         //LAV MYSQL INJECT TEST HER
-        Page page = new Page(pageDTO.getTitle(), pageDTO.getText(), pageDTO.getMainAuthor());
-        em.persist(page);
-        em.getTransaction().commit();
-        em.close();
-        
-        return page;
+        ArrayList itemsToSanitize = new ArrayList<String>();
+        itemsToSanitize.add(pageDTO.getTitle());
+        itemsToSanitize.add(pageDTO.getText());
+        itemsToSanitize.add(pageDTO.getMainAuthor());
+
+        PageFacade fac = new PageFacade();
+        boolean flag = fac.sanitizeInput(itemsToSanitize);
+
+        if (flag) {
+            throw new IllegalOperationException();
+        } else {
+            Page page = new Page(pageDTO.getTitle(), pageDTO.getText(), pageDTO.getMainAuthor());
+            em.persist(page);
+            em.getTransaction().commit();
+            em.close();
+
+            return page;
+        }
     }
     
-     public PageDTO editPage(PageDTO pageDTO, long id) {
+     public PageDTO editPage(PageDTO pageDTO, long id) throws IllegalOperationException {
         EntityManager em = emf.createEntityManager();
 
         try {
             em.getTransaction().begin();
             Page page = em.find(Page.class, id);
-            page.setTitle(pageDTO.getTitle());
-            page.setText(pageDTO.getText());
             
-            em.getTransaction().commit();
-            return new PageDTO(page);
+            ArrayList itemsToSanitize = new ArrayList<String>();
+            itemsToSanitize.add(pageDTO.getTitle());
+            itemsToSanitize.add(pageDTO.getText());
+            PageFacade fac = new PageFacade();
+            boolean flag = fac.sanitizeInput(itemsToSanitize);
+        
+            if(flag){
+                throw new IllegalOperationException();
+            } else {
+                page.setTitle(pageDTO.getTitle());
+                page.setText(pageDTO.getText());
+                em.getTransaction().commit(); 
+                return new PageDTO(page);
+            }
+           
         } finally {
             em.close();
         }
     }
+     
     
     public PagesDTO getPages() throws NotFoundException{
         EntityManager em = emf.createEntityManager();
@@ -108,6 +138,80 @@ public class PageFacade {
        }
     }
     
+    public String editWriteRights(long id, String addUser) throws NotFoundException, IllegalOperationException {
+        EntityManager em = emf.createEntityManager();
+
+        PageFacade fac = new PageFacade();
+        ArrayList itemsToSanitize = new ArrayList<>();
+        itemsToSanitize.add(addUser);
+        boolean flag = fac.sanitizeInputHard(itemsToSanitize);
+
+        if (flag) {
+            throw new IllegalOperationException();
+        }
+
+        try {
+            Page page = em.find(Page.class, id);
+            if (page == null) {
+                throw new NotFoundException(String.format("Page with id: (%d) not found.", id));
+            } else {
+                em.getTransaction().begin();
+                String str = page.getWritePermission();
+                List<String> users = Arrays.asList(str.split(","));
+
+                boolean containsOrNot = users.contains(addUser) ? true : false;
+
+                if (containsOrNot) {
+                    return "Write permission already contains user.";
+                } else {
+                    str = str + addUser + ",";
+                    page.setWritePermission(str);
+                }
+                em.getTransaction().commit();
+                return "Added user " + addUser + ".";
+            }
+        } finally {
+            em.close();
+        }
+    }
+
+    public String editDeleteRights(long id, String addUser) throws NotFoundException, IllegalOperationException {
+        EntityManager em = emf.createEntityManager();
+        
+        PageFacade fac = new PageFacade();
+        ArrayList itemsToSanitize = new ArrayList<>();
+        itemsToSanitize.add(addUser);
+        boolean flag = fac.sanitizeInputHard(itemsToSanitize);
+
+        if (flag) {
+            throw new IllegalOperationException();
+        }
+        
+        try {
+            Page page = em.find(Page.class, id);
+            if (page == null) {
+                throw new NotFoundException(String.format("Page with id: (%d) not found.", id));
+            } else {
+                em.getTransaction().begin();
+                String str = page.getDeletePermission();
+                List<String> users = Arrays.asList(str.split(","));
+
+                boolean containsOrNot = users.contains(addUser) ? true : false;
+
+                if (containsOrNot) {
+                    return "Delete permission already contains user.";
+                } else {
+                    str = str + addUser + ",";
+                    page.setDeletePermission(str);
+                }
+                em.getTransaction().commit();
+                return "Added user " + addUser + ".";
+            }
+        } finally {
+            em.close();
+        }
+    }
+    
     public PageDTO deletePage(long id) {
         EntityManager em = emf.createEntityManager();   
         
@@ -137,15 +241,46 @@ public class PageFacade {
         return req;
     }
     
-    public static void main(String[] args) throws NotFoundException {
+    public boolean sanitizeInput(ArrayList list) throws IllegalOperationException{
+        Pattern p = Pattern.compile("[^.,a-z0-9 ]", Pattern.CASE_INSENSITIVE);
+        
+        for(int i = 0; i < list.size(); i++){
+            Matcher m = p.matcher(list.get(i).toString());
+            boolean b = m.find();
+            if (b){
+            return true;
+            }
+        }
+        return false;
+    }
+    
+        public boolean sanitizeInputHard(ArrayList list) throws IllegalOperationException{
+        Pattern p = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
+        
+        for(int i = 0; i < list.size(); i++){
+            Matcher m = p.matcher(list.get(i).toString());
+            boolean b = m.find();
+            if (b){
+            return true;
+            }
+        }
+        return false;
+    }
+    
+    public static void main(String[] args) throws NotFoundException, IOException, IllegalOperationException {
 //         EntityManager em = emf.createEntityManager();
 //          Query query = em.createQuery("SELECT p FROM Page p WHERE p.id = '51");
 //            PageDTO page = (PageDTO)query.getSingleResult();
         EntityManagerFactory EMF = EMF_Creator.createEntityManagerFactory();
         PageFacade PAGEFACADE =  PageFacade.getPageFacade(EMF);
         String us = "us";
-        PAGEFACADE.requestLogger(2, "DEL", us);
+        //PAGEFACADE.requestLogger(2, "DEL", us);
+        ArrayList a = new ArrayList<String>();
+        a.add("Okay");
+        a.add("Ille++a");
         
+        boolean te = PAGEFACADE.sanitizeInput(a);
+        System.out.println(te);
     }
     
 }

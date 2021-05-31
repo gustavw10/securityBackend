@@ -9,6 +9,7 @@ package rest;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.nimbusds.jose.util.ArrayUtils;
+import dtos.AddUserDTO;
 import dtos.PageDTO;
 import dtos.PagesDTO;
 import dtos.UserDTO;
@@ -17,6 +18,7 @@ import entities.Page;
 import entities.Request;
 import entities.Role;
 import entities.User;
+import errorhandling.IllegalOperationException;
 import errorhandling.MissingInputException;
 import errorhandling.NotFoundException;
 import facades.PageFacade;
@@ -65,7 +67,7 @@ public class PageResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("insertPage")
     @RolesAllowed({"user", "admin"})
-    public String insertPage(String page) {
+    public String insertPage(String page) throws IllegalOperationException {
         //EntityManager em = EMF.createEntityManager();
         String thisuser = securityContext.getUserPrincipal().getName();
         
@@ -102,7 +104,7 @@ public class PageResource {
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     @RolesAllowed({"user", "admin"})
-    public String updatePage(@PathParam("id") long id,  String page) throws NotFoundException { 
+    public String updatePage(@PathParam("id") long id,  String page) throws NotFoundException, IllegalOperationException { 
         String thisuser = securityContext.getUserPrincipal().getName();  
         PageResource res = new PageResource();
         boolean key = res.getKey(id, true, false, thisuser);
@@ -142,20 +144,53 @@ public class PageResource {
         }
         return GSON.toJson("Permission denied.");
     }
-     
+    
     @PUT
-    @Path("editRights/{id}")
+    @Path("editWriteRights/{id}")
     @Produces({MediaType.APPLICATION_JSON})
     @Consumes({MediaType.APPLICATION_JSON})
     @RolesAllowed({"user", "admin"})
-    public String editRights(@PathParam("id") long id,  String addUser) throws NotFoundException { 
+    public String editWriteRights(@PathParam("id") long id,  String addUser) throws NotFoundException, IllegalOperationException { 
         String thisuser = securityContext.getUserPrincipal().getName();
         PageResource res = new PageResource();
         boolean key = res.getKey(id, false, false, thisuser);
         
+        if(key){
+            AddUserDTO userToAdd = GSON.fromJson(addUser, AddUserDTO.class);
+            String username = userToAdd.getAddUser();
+            String returnedMessage = PAGEFACADE.editWriteRights(id, username);
+            return GSON.toJson(returnedMessage);
+        }
         return GSON.toJson("Permission denied.");
     }
     
+    @PUT
+    @Path("editDeleteRights/{id}")
+    @Produces({MediaType.APPLICATION_JSON})
+    @Consumes({MediaType.APPLICATION_JSON})
+    @RolesAllowed({"user", "admin"})
+    public String editDeleteRights(@PathParam("id") long id,  String addUser) throws NotFoundException, IllegalOperationException { 
+        String thisuser = securityContext.getUserPrincipal().getName();
+        PageResource res = new PageResource();
+        boolean key = res.getKey(id, false, false, thisuser);
+        
+        if(key){
+            AddUserDTO userToAdd = GSON.fromJson(addUser, AddUserDTO.class);
+            String username = userToAdd.getAddUser();
+            String returnedMessage = PAGEFACADE.editDeleteRights(id, username);
+            return GSON.toJson(returnedMessage);
+        }
+        return GSON.toJson("Permission denied.");
+    }
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("loggedInAs")
+    @RolesAllowed({"user", "admin"})
+    public String getAdminToken() {
+        String thisuser = securityContext.getUserPrincipal().getName();
+        return GSON.toJson(thisuser);
+    }
     
       public boolean getKey(Long id, boolean write, boolean del, String user) throws NotFoundException{
         boolean writeKey = false, delKey = false, adminKey = false, authorKey = false;
@@ -181,7 +216,6 @@ public class PageResource {
     }
     
     public static void main(String[] args) throws NotFoundException {
-        PageResource res = new PageResource();
-        
+        PageResource res = new PageResource();    
     }
 }
